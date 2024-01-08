@@ -1,6 +1,11 @@
-name: clang-format Check
-# on: [push, pull_request]
-on: workflow_dispatch
+name: Run clang-format Check
+on:
+  workflow_dispatch:  
+  # push:
+  #   branches: [main, develop]
+  # pull_request:
+  #   branches: [main, develop]
+# on: workflow_dispatch
 jobs:
   formatting-check:
     name: Formatting Check
@@ -11,14 +16,14 @@ jobs:
           - check: 'src'
             exclude: ''              # Nothing to exclude
           - check: 'test'
-            exclude: '(template|unity)' # Exclude file paths containing "template" or "unity"
+            exclude: '(template|unity|hw_test)'  # Exclude file paths containing "template" or "unity"
 
     steps:
-    - uses: actions/checkout@v4.1.0
+    - uses: actions/checkout@v4.1.1
     - name: Run clang-format style check for C/C++/Protobuf programs.
       uses: jidicula/clang-format-action@v4.11.0
       with:
-        clang-format-version: '13'
+        clang-format-version: '17'
         check-path: ${{ matrix.path['check'] }}
         exclude-regex: ${{ matrix.path['exclude'] }}
         # fallback-style: 'Microsoft' # optional
