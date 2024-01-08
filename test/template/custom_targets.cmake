@@ -5,7 +5,8 @@
 # 		2. CppCheck static analize of specific folder
 # 		3. Code Coverage report generation.
 
-
+#TARGETS FOR RUNNING UNIT TESTS
+add_custom_target(run template_test)
 
 # TARGET FOR CHECKING CODE COMPLEXITY METRICS"
 # check if lizard software is available 
