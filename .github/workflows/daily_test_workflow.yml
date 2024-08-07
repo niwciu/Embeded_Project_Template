@@ -47,13 +47,13 @@ jobs:
       with:
         submodules: recursive
         
-    - name: arm-none-eabi-gcc
-      uses: ryanwinter/arm-none-eabi-gcc@master
-      with:
-        release: '10-2021.10'
+    # - name: arm-none-eabi-gcc
+    #   uses: ryanwinter/arm-none-eabi-gcc@master
+    #   with:
+    #     release: '10-2021.10'
         
     - name: Install Ninja
-      uses: seanmiddleditch/gha-setup-ninja@v3
+      uses: seanmiddleditch/gha-setup-ninja@v5
         
     - name: Build binary
       working-directory: test/template
