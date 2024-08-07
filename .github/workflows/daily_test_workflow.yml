@@ -28,7 +28,7 @@ jobs:
         exclude-regex: ${{ matrix.path['exclude'] }}
         # fallback-style: 'Microsoft' # optional
     - name: Annotate lines with clang-format errors
-      uses: yuzutech/annotations-action@v0.4.0
+      uses: yuzutech/annotations-action@v0.5.0
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         title: 'Results of CppCheck src files'
@@ -69,3 +69,9 @@ jobs:
     - name: Run template tests
       working-directory: test/template/out
       run: ./template_test.exe -v
+    - name: Annotate Failled tests
+      uses: yuzutech/annotations-action@v0.5.0
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        title: 'Results of CppCheck src files'
+        input: 'annotations.json'
