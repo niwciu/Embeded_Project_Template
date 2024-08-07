@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "d:/0_Projekty/Project_Template/test/template",
-      "program": "d:/0_Projekty/Project_Template/test/template/build/Debug/outDebug",
+      "cwd": "d:/0_Projekty/Embeded_Project_Template/src",
+      "program": "d:/0_Projekty/Embeded_Project_Template/src/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
