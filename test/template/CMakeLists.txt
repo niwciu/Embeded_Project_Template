@@ -6,11 +6,11 @@
 #        For build using Unix Makefiles:
 #          	1. cmake -S./ -B out -G"Unix Makefiles"
 #			2. enter the "out" folder
-#          	3. make all -o lcd_hd44780.o (-jXX additionaly to speed up)
+#          	3. make all -o lcd_hd44780_test.o (-jXX additionaly to speed up)
 #        For build using Ninja:
 #          	1. cmake -S./ -B out -G"Ninja"
 # 			2. enter the "out" folder
-#         	3. ninja -C out -o lcd_hd44780.o (optional with -V  and -jxx ->xx numnber of cores)
+#         	3. ninja -C out -o lcd_hd44780_test.o (optional with -V  and -jxx ->xx numnber of cores)
 # additional custom targets for this project:
 # 		If lizard is installed and you are in the out folder:
 # 			1. make ccm -> code complexity metrix print in console
