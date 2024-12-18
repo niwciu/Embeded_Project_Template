@@ -8,7 +8,8 @@
 
 
 #TARGETS FOR RUNNING UNIT TESTS
-add_custom_target(run lcd_hd44780_test)
+message(STATUS "To run Unit Tests, you can use predefine target: \r\n\trun,")
+add_custom_target(run template_test)
 
 # TARGET FOR CHECKING CODE COMPLEXITY METRICS"
 # check if lizard software is available 
@@ -19,30 +20,53 @@ else()
 	message(STATUS "Lizard was not found. \r\n\tInstall Lizard to get predefined targets for src folder Code Complexity Metrics")
 endif()
 # Prints CCM for src folder in the console
-add_custom_target(ccm lizard ../../../src/ --CCN 12 -Tnloc=30 -a 4 --languages cpp -V -i 1)
+add_custom_target(ccm lizard 
+						../../../src/ 
+						--CCN 12 -Tnloc=30 
+						-a 4 
+						--languages cpp 
+						-V 
+						-i 1)
 # Create CCM report in reports/Cylcomatic_Complexity/
-add_custom_target(ccmr lizard ../../../src/ --CCN 12 -Tnloc=30 -a 4 --languages cpp -V -o ../../../reports/Cyclomatic_Complexity/Lizard_report.html)
+add_custom_target(ccmr lizard 
+						../../../src/ 
+						--CCN 12 
+						-Tnloc=30 
+						-a 4 
+						--languages cpp 
+						-V 
+						-o ../../../reports/CCM/template.html)
 
 # TARGET FOR MAKING STATIC ANALYSIS OF THE SOURCE CODE AND UNIT TEST CODE
 # check if cppchec software is available 
 find_program(cppcheck_program cppcheck)
 if(cppcheck_program)
-	message(STATUS "CppCheck was found, you can use predefined targets for static analize : \r\n\tcppcheck_src,\r\n\tcppcheck_tests,")
+	message(STATUS "CppCheck was found, you can use predefined targets for static analize : \r\n\tcppcheck,")
 else()
 	message(STATUS "CppCheck was not found. \r\n\tInstall CppCheck to get predefined targets for static analize")
 endif()
-# Prints static analize output for src folder in the console
-add_custom_target(cppcheck_src cppcheck ../../../src --enable=all --inconclusive --force --inline-suppr --platform=win64 --suppress=missingInclude --suppress=missingIncludeSystem --suppress=unusedFunction)
-# Prints static analize output for specific test_module folder in the console
-add_custom_target(cppcheck_test cppcheck ../../../test/lcd_hd44780 -itest/lcd_hd44780/out -itest/lcd_hd44780/out_avr --enable=all --inconclusive --force --inline-suppr --platform=win64 --suppress=missingInclude --suppress=missingIncludeSystem || echo "test")
-
+add_custom_target(cppcheck cppcheck
+					../../../src/template
+					../../../test/template
+					-i../../../test/template/out
+					--enable=all
+					--force
+					# --inconclusive
+					--std=c99
+					# --inline-suppr 
+					# --platform=win64 
+					--suppress=missingIncludeSystem 
+					--suppress=missingInclude
+					# --suppress=unusedFunction:../../../test/template/template_test_runner.c:3
+					# --checkers-report=cppcheck_checkers_report.txt
+					)
 # TARGET FOR CREATING CODE COVERAGE REPORTS
 # check if python 3 and gcovr are available 
 find_program(GCOVR gcovr)
-find_program(PYTHON3 python3)
-if(PYTHON3)
+find_program(PYTHON python)
+if(PYTHON)
 	if(GCOVR)
-		message(STATUS "python 3 and gcovr was found, you can use predefined targets for uint tests code coverage report generation : \r\n\tccr,")
+		message(STATUS "python 3 and gcovr was found, you can use predefined targets for uint tests code coverage report generation : \r\n\tccc, \r\n\tccr")
 	else()
 		message(STATUS "pyton 3 was found but gcovr was not found. \r\n\tInstall gcovr to get predefined targets for uint tests code coverage report generation")
 	endif()
@@ -53,4 +77,11 @@ else()
 		message(STATUS "python3 and gcovr were not found. \r\n\tInstall python 3 and gcovr to get predefined targets for uint tests code coverage report generation")
 	endif()
 endif()
-add_custom_target(ccr python3 -m gcovr CMakeFiles/lcd_hd44780_test.dir/D_/0_Projekty/6_Biblioteki/LCD_HD44780/src -r ../../.. --html-details ../../../reports/Code_Coverage/lcd_hd44780_gcov_report.html)
+add_custom_target(ccr python -m gcovr 
+						-r ../../../lib/template 
+						--html-details ../../../reports/CCR/template/template_report.html 
+						.)
+add_custom_target(ccc python -m gcovr  
+						-r ../../../lib/template 
+						--fail-under-line 90
+						.)

@@ -49,7 +49,7 @@ set(CXX_WARNINGS "-Wall -Wextra")
 # -Wstrict-prototypes - additional warnings for function prototypes
 set(C_WARNINGS "-Wall -Wextra -Wstrict-prototypes")
 
-set(LD_SCRIPT ${CMAKE_SOURCE_DIR}/linker.ld)
+set(LD_SCRIPT ${CMAKE_SOURCE_DIR}/${LD_FILE})
 # Linker flags
 # -Wl, -Map - map file to be created
 # -T - file with linker script
