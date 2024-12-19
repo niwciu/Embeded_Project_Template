@@ -85,3 +85,14 @@ add_custom_target(ccc python -m gcovr
 						-r ../../../lib/template 
 						--fail-under-line 90
 						.)
+
+add_custom_target(ccca python -m gcovr  
+						-r ../../../ 
+						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
+						.)
+						
+add_custom_target(ccar python -m gcovr  
+						-r ../../../ 
+						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
+						--html-details -o ../../../reports/CCR/HTML_OUT/project_coverage.html
+						.)
