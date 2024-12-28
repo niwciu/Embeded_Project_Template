@@ -96,3 +96,18 @@ add_custom_target(ccar python -m gcovr
 						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
 						--html-details -o ../../../reports/CCR/HTML_OUT/project_coverage.html
 						.)
+add_dependencies(ccra ccr)
+add_dependencies(ccca ccr)
+
+find_program(CLANG_FORMAT clang-format)
+if(CLANG_FORMAT)
+	message(STATUS "clang-format was found, you can use predefined target for formating the code in project predefined standard : \r\n\tformat \r\n\tformat_test")
+else()
+	message(STATUS "clang-format was not found. \r\n\tInstall clang-format to get predefined target for formating the code in project predefined standard")
+endif()
+add_custom_target(format  clang-format -i -style=file 
+				../../../src/template/*.c 
+				../../../src/template/*.h)
+add_custom_target(format_test  clang-format -i -style=file 
+				../*.c 
+				../*.h)

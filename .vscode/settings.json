@@ -62,5 +62,6 @@
     "time.h": "c",
     "signal.h": "c"
   },
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.errorSquiggles": "disabled",
+  "cmake.sourceDirectory": "D:/EMBEDDED/PROJECT_TEMPLATES/Embeded_Project_Template/hw/ATMEGA328P_ARDUINO_UNO_R3"
 }
