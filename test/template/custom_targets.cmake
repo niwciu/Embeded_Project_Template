@@ -79,6 +79,8 @@ else()
 endif()
 add_custom_target(ccr python -m gcovr 
 						-r ../../../lib/template 
+						--json ../../../reports/CCR/JSON_ALL/coverage_template.json
+						--json-base  src/template
 						--html-details ../../../reports/CCR/template/template_report.html 
 						.)
 add_custom_target(ccc python -m gcovr  
