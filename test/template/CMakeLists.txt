@@ -37,13 +37,6 @@ elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fcolor-diagnostics")
 endif()
 
-# checking and defining libm if required
-include(CheckLibraryExists)
-CHECK_LIBRARY_EXISTS(m sin "" HAVE_LIB_M)                                                                                                                                                                                                                                  
-if (HAVE_LIB_M)                                                                                                                          
-    set(EXTRA_LIBS ${EXTRA_LIBS} m)                                                                                                      
-endif (HAVE_LIB_M)
-
 set(INCLUDE_DIRS
 	../../src
 )
@@ -68,7 +61,7 @@ set(GLOBAL_DEFINES
 	-DUNIT_TESTS
 )
 # set -g3 flag for enabling debug on developing maching
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -fshort-enums")
 
 include(${CUSTOM_TARGETS_FILE_DIR})
 
@@ -77,8 +70,11 @@ add_definitions(${GLOBAL_DEFINES})
 
 link_libraries(unity)
 add_executable(${PROJECT_NAME} ${SRCS} ${TEST_SRCS})
-# addding extra libs to target
-target_link_libraries(${PROJECT_NAME} ${EXTRA_LIBS})
 
-target_compile_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage -O0)
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${MATH_LIBRARY})
+endif()
+
+target_compile_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
 target_link_options(${PROJECT_NAME} PRIVATE -fprofile-arcs)
