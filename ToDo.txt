@@ -1,0 +1,1 @@
+check option that defined targets create folders if they don't exist... or define target for creting report folder struc and runn it as dependencies

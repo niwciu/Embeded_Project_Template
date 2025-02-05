@@ -28,14 +28,22 @@ add_custom_target(ccm lizard
 						-V 
 						-i 1)
 # Create CCM report in reports/Cylcomatic_Complexity/
-add_custom_target(ccmr lizard 
-						../../../src/ 
-						--CCN 12 
-						-Tnloc=30 
-						-a 4 
-						--languages cpp 
-						-V 
-						-o ../../../reports/CCM/template.html)
+add_custom_command(
+    OUTPUT ../../../reports/CCM/
+    COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCM/
+    COMMENT "Tworzenie katalogów raportów Code Coverage"
+)
+add_custom_target(ccmr 
+	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCM/
+	COMMAND lizard 
+				../../../src/ 
+				--CCN 12 
+				-Tnloc=30 
+				-a 4 
+				--languages cpp 
+				-V 
+				-o ../../../reports/CCM/template.html
+)
 
 # TARGET FOR MAKING STATIC ANALYSIS OF THE SOURCE CODE AND UNIT TEST CODE
 # check if cppchec software is available 
@@ -77,12 +85,23 @@ else()
 		message(STATUS "python3 and gcovr were not found. \r\n\tInstall python 3 and gcovr to get predefined targets for uint tests code coverage report generation")
 	endif()
 endif()
-add_custom_target(ccr python -m gcovr 
-						-r ../../../lib/template 
-						--json ../../../reports/CCR/JSON_ALL/coverage_template.json
-						--json-base  src/template
-						--html-details ../../../reports/CCR/template/template_report.html 
-						.)
+add_custom_command(
+    OUTPUT ../../../reports/CCR/ ../../../reports/CCR/JSON_ALL/
+    COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/
+    COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/JSON_ALL/
+    COMMENT "Tworzenie katalogów raportów Code Coverage"
+)
+add_custom_target(ccr
+	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/
+	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/JSON_ALL/
+	COMMAND python -m gcovr 
+							-r ../../../src/template 
+							--json ../../../reports/CCR/JSON_ALL/coverage_template.json
+							--json-base  src/template
+							--html-details ../../../reports/CCR/template/template_report.html 
+							.
+)
+		
 add_custom_target(ccc python -m gcovr  
 						-r ../../../lib/template 
 						--fail-under-line 90
@@ -93,11 +112,15 @@ add_custom_target(ccca python -m gcovr
 						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
 						.)
 						
-add_custom_target(ccar python -m gcovr  
+add_custom_target(ccra  
+	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/
+	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/JSON_ALL/
+	COMMAND python -m gcovr 
 						-r ../../../ 
 						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
 						--html-details -o ../../../reports/CCR/HTML_OUT/project_coverage.html
-						.)
+						.
+)
 add_dependencies(ccra ccr)
 add_dependencies(ccca ccr)
 
