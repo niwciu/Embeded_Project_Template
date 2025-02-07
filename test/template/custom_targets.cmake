@@ -94,32 +94,34 @@ add_custom_command(
 add_custom_target(ccr
 	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/
 	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/JSON_ALL/
-	COMMAND python -m gcovr 
-							-r ../../../src/template 
-							--json ../../../reports/CCR/JSON_ALL/coverage_template.json
-							--json-base  src/template
-							--html-details ../../../reports/CCR/template/template_report.html 
-							.
+	COMMAND gcovr 
+				-r ../../../src/template 
+				--json ../../../reports/CCR/JSON_ALL/coverage_template.json
+				--json-base  src/template
+				--html-details ../../../reports/CCR/template/template_report.html 
+				.
 )
 		
-add_custom_target(ccc python -m gcovr  
-						-r ../../../lib/template 
+add_custom_target(ccc gcovr  
+						-r ../../../src/template 
 						--fail-under-line 90
-						.)
+						.
+)
 
-add_custom_target(ccca python -m gcovr  
+add_custom_target(ccca gcovr  
 						-r ../../../ 
 						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
-						.)
+						.
+)
 						
 add_custom_target(ccra  
 	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/
 	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/JSON_ALL/
-	COMMAND python -m gcovr 
-						-r ../../../ 
-						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
-						--html-details -o ../../../reports/CCR/HTML_OUT/project_coverage.html
-						.
+	COMMAND gcovr 
+				-r ../../../ 
+				--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
+				--html-details -o ../../../reports/CCR/HTML_OUT/project_coverage.html
+				.
 )
 add_dependencies(ccra ccr)
 add_dependencies(ccca ccr)
@@ -130,9 +132,15 @@ if(CLANG_FORMAT)
 else()
 	message(STATUS "clang-format was not found. \r\n\tInstall clang-format to get predefined target for formating the code in project predefined standard")
 endif()
-add_custom_target(format  clang-format -i -style=file 
-				../../../src/template/*.c 
-				../../../src/template/*.h)
-add_custom_target(format_test  clang-format -i -style=file 
-				../*.c 
-				../*.h)
+add_custom_target(format  clang-format 
+							-i 
+							-style=file 
+							../../../src/template/*.c 
+							../../../src/template/*.h
+)
+add_custom_target(format_test  clang-format 
+								-i 
+								-style=file 
+								../*.c 
+								../*.h
+)
