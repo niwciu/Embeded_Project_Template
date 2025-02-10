@@ -71,19 +71,14 @@ add_custom_target(cppcheck cppcheck
 # TARGET FOR CREATING CODE COVERAGE REPORTS
 # check if python 3 and gcovr are available 
 find_program(GCOVR gcovr)
-find_program(PYTHON python)
-if(PYTHON)
-	if(GCOVR)
-		message(STATUS "python 3 and gcovr was found, you can use predefined targets for uint tests code coverage report generation : \r\n\tccc, \r\n\tccr")
-	else()
-		message(STATUS "pyton 3 was found but gcovr was not found. \r\n\tInstall gcovr to get predefined targets for uint tests code coverage report generation")
-	endif()
+if(GCOVR)
+	message(STATUS "python 3 and gcovr was found, you can use predefined targets for uint tests code coverage report generation : 
+					\r\tccc - Code Coverage Check, 
+					\r\tccr - Code Coverage Reports generation,
+					\r\tccca - Code Coverage Check All -> whole project check, 
+					\r\tccra - Code Coverage Reports All -> whole project raport generation")
 else()
-	if(GCOVR)
-		message(STATUS "python3 was not found. \r\n\tInstall python 3 to get predefined targets for uint tests code coverage report generation")
-	else()
-		message(STATUS "python3 and gcovr were not found. \r\n\tInstall python 3 and gcovr to get predefined targets for uint tests code coverage report generation")
-	endif()
+	message(STATUS "pyton 3 was found but gcovr was not found. \r\n\tInstall gcovr to get predefined targets for uint tests code coverage report generation")
 endif()
 add_custom_command(
     OUTPUT ../../../reports/CCR/ ../../../reports/CCR/JSON_ALL/
@@ -98,7 +93,8 @@ add_custom_target(ccr
 				-r ../../../src/template 
 				--json ../../../reports/CCR/JSON_ALL/coverage_template.json
 				--json-base  src/template
-				--html-details ../../../reports/CCR/template/template_report.html 
+				--html-details ../../../reports/CCR/template/template_report.html
+				--html-theme github.dark-green
 				.
 )
 		
@@ -110,7 +106,7 @@ add_custom_target(ccc gcovr
 
 add_custom_target(ccca gcovr  
 						-r ../../../ 
-						--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
+						--json-add-tracefile \"../../../reports/CCR/JSON_ALL/coverage_*.json\"  
 						.
 )
 						
@@ -119,8 +115,9 @@ add_custom_target(ccra
 	COMMAND ${CMAKE_COMMAND} -E make_directory ../../../reports/CCR/JSON_ALL/
 	COMMAND gcovr 
 				-r ../../../ 
-				--json-add-tracefile ../../../reports/CCR/JSON_ALL/coverage_*.json  
+				--json-add-tracefile \"../../../reports/CCR/JSON_ALL/coverage_*.json\"  
 				--html-details -o ../../../reports/CCR/HTML_OUT/project_coverage.html
+				--html-theme github.dark-green
 				.
 )
 add_dependencies(ccra ccr)
