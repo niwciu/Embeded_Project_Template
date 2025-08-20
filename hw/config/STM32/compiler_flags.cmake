@@ -2,7 +2,7 @@
 set(CORE_FLAGS "${MCPU} -mthumb")
 
 # Debug flag
-if(CMAKE_BUILD_TYPE=="Debug")
+if(BUILD_TYPE STREQUAL "Debug")
     set(CORE_FLAGS "${CORE_FLAGS} -g3")
 endif()
 
@@ -25,7 +25,7 @@ endif()
 # -fno-exceptions - disable exception handling
 # fverbose-asm - additional comments for generated assembler code
 # -MMD - create dependency files
-set(CXX_FLAGS "-std=gnu++14 -Os -g3 -fno-rtti -fno-exceptions -fverbose-asm -MMD")
+set(CXX_FLAGS "-std=gnu++14 -Os -fno-rtti -fno-exceptions -fverbose-asm -MMD")
 
 # Compiler flags specific for C files
 # -std - C standard: c89, c99, gnu89,gnu99, iso9899:119409

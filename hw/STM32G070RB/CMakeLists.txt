@@ -4,17 +4,17 @@
 #
 # usage: Edit MCPU-Variable to suit STM32 project requirements.
 #        For debug build using Unix Makefiles:
-#          cmake -S ./ -B Debug -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug
+#          cmake -S ./ -B Debug -G"Unix Makefiles" -DBUILD_TYPE=Debug
 #          make -C Debug all (optional with VERBOSE=1  and -jxx ->xx numnber of cores)
 #        For debug build using Ninja:
-#          cmake -S ./ -B Debug -G"Ninja" -DCMAKE_BUILD_TYPE=Debug
+#          cmake -S ./ -B Debug -G"Ninja" -DBUILD_TYPE=Debug
 #          ninja -C Debug (optional with -V)
 # 
 #        For release build Unix Makefiles:
-#          cmake -S ./ -B Release -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+#          cmake -S ./ -B Release -G"Unix Makefiles" -DBUILD_TYPE=Release
 #          make all -C Release VERBOSE=1 -j12 (optional with VERBOSE=1  and -jxx ->xx numnber of cores)
 #        For Release build using Ninja:
-#          cmake -S ./ -B Release -G"Ninja" -DCMAKE_BUILD_TYPE=Release
+#          cmake -S ./ -B Release -G"Ninja" -DBUILD_TYPE=Release
 #          ninja -C Release (optional -V)
 #############################################################################################################################
 cmake_minimum_required(VERSION 3.10)
@@ -63,7 +63,7 @@ set(GLOBAL_DEFINES
 )
 
 set(LINKED_LIBS
-    DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    DBUILD_TYPE=${BUILD_TYPE}
 )
 
 link_directories(
