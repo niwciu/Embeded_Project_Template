@@ -13,53 +13,87 @@
 ############################################################################################################
 FROM ubuntu:latest
 
-# packages
+# Install necessary packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     cmake \
-    g++ \ 
+    g++ \
     git \
     ninja-build \
     wget \
     xz-utils \
     python3 \
     python3-venv \
-    pip \
+    python3-pip \
     pipx \
     make \
     clang-format \
-    stlink-tools
+    stlink-tools \
+    graphviz && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set working directory and switch to the new user
-WORKDIR /home/workspace
+# Ensure pipx installs globally and is available for all users
+ENV PIPX_BIN_DIR=/usr/local/bin
+ENV PIPX_HOME=/usr/local/pipx
+ENV PATH="${PIPX_BIN_DIR}:${PIPX_HOME}/bin:${PATH}"
 
-#inlstall lizard & gcovr 
-# Install lizard & gcovr in the global directory
-RUN pipx install lizard && pipx install gcovr && pipx ensurepath && pipx runpip lizard install jinja2
+RUN pipx install --system-site-packages lizard && \
+    pipx install --system-site-packages gcovr && \
+    pipx runpip lizard install jinja2
 
-# tools directory
-ARG TOOLS_DIRECTORY=/home/opt
-RUN mkdir -p ${TOOLS_DIRECTORY}
+# Ensure all users can access installed tools
+RUN chmod -R a+rx /usr/local/bin /usr/local/pipx
 
-# arm toolchain
+# Set tools directory
+ARG TOOLS_DIRECTORY=/opt/tools
+RUN mkdir -p ${TOOLS_DIRECTORY} && chmod -R a+rx ${TOOLS_DIRECTORY}
+
+# Install ARM toolchain
 ARG ARM_TOOLCHAIN_VERSION=13.2
 ARG ARM_TOOLCHAIN_FILE=arm-gnu-toolchain-${ARM_TOOLCHAIN_VERSION}.rel1-x86_64-arm-none-eabi.tar.xz
 ARG ARM_TOOLCHAIN_DIRECTORY=arm-gnu-toolchain-${ARM_TOOLCHAIN_VERSION}.Rel1-x86_64-arm-none-eabi
 
-RUN wget -q https://developer.arm.com/-/media/Files/downloads/gnu/${ARM_TOOLCHAIN_VERSION}.rel1/binrel/${ARM_TOOLCHAIN_FILE} \
-    && tar xf ${ARM_TOOLCHAIN_FILE} -C ${TOOLS_DIRECTORY} \
-    && rm ${ARM_TOOLCHAIN_FILE}
-ENV PATH=${PATH}:${TOOLS_DIRECTORY}/${ARM_TOOLCHAIN_DIRECTORY}/bin
+RUN wget -q https://developer.arm.com/-/media/Files/downloads/gnu/${ARM_TOOLCHAIN_VERSION}.rel1/binrel/${ARM_TOOLCHAIN_FILE} && \
+    tar xf ${ARM_TOOLCHAIN_FILE} -C ${TOOLS_DIRECTORY} && \
+    rm ${ARM_TOOLCHAIN_FILE}
 
-# avr toolchain
+ENV PATH="${PATH}:${TOOLS_DIRECTORY}/${ARM_TOOLCHAIN_DIRECTORY}/bin"
 
-# cppcheck
+# Install cppcheck
 ARG CPPCHECK_VERSION=2.16.2
-RUN cd ${TOOLS_DIRECTORY} && git clone https://github.com/danmar/cppcheck.git && cd cppcheck && git checkout ${CPPCHECK_VERSION} \
-    && cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MATCHCOMPILER=ON -G Ninja \
-    && cmake --build build && cmake --install build \
-    && cd .. && rm -rf cppcheck
+RUN git clone https://github.com/danmar/cppcheck.git /tmp/cppcheck && \
+    cd /tmp/cppcheck && git checkout ${CPPCHECK_VERSION} && \
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DUSE_MATCHCOMPILER=ON -G Ninja && \
+    cmake --build build && cmake --install build && \
+    rm -rf /tmp/cppcheck
 
-RUN apt-get remove pipx -y
-RUN apt autoremove -y
-RUN rm -rf /var/lib/apt/lists/*
+# Install latest Doxygen from source
+ARG DOXYGEN_VERSION=1.13.2
+ARG DOXYGEN_FILE=doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+ARG DOXYGEN_DIRECTORY=doxygen-${DOXYGEN_VERSION}
+
+RUN wget -q https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
+    tar xf ${DOXYGEN_FILE} -C ${TOOLS_DIRECTORY} && \
+    rm ${DOXYGEN_FILE}
+
+
+# Install latest Doxygen from source
+ARG DOXYGEN_VERSION=1.13.2
+ARG DOXYGEN_FILE=doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+ARG DOXYGEN_DIRECTORY=doxygen-${DOXYGEN_VERSION}
+
+# Pobieranie i rozpakowywanie Doxygena
+RUN wget -q https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
+    tar xf ${DOXYGEN_FILE} -C ${TOOLS_DIRECTORY} && \
+    rm ${DOXYGEN_FILE}
+
+# Ustawienie zmiennych ścieżek
+ENV DOXYGEN_BIN_DIR=${TOOLS_DIRECTORY}/${DOXYGEN_DIRECTORY}/bin
+
+# Dodanie ścieżki do Doxygena w systemie PATH
+ENV PATH="${PATH}:${DOXYGEN_BIN_DIR}"
+
+# Ustawienie domyślnego powłoki
+CMD ["/bin/bash"]
+
+

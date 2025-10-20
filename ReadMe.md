@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="/PUSHBUTTON_SWITCH_LIB/assets/css/custom-dark.css">
+
 Tools that are used along with this project template and need to be instaled on local machine or dev docker img
 1) Lizard 
     
