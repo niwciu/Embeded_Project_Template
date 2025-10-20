@@ -116,7 +116,7 @@ add_custom_target(ccra
 	COMMAND gcovr 
 				-r ../../../ 
 				--json-add-tracefile \"../../../reports/CCR/JSON_ALL/coverage_*.json\"  
-				--html-details -o ../../../reports/CCR/JSON_ALL/html_out/project_coverage.html
+				--html-details -o ../../../reports/CCR/JSON_ALL/HTML_OUT/project_coverage.html
 				--html-theme github.dark-green
 				.
 )
