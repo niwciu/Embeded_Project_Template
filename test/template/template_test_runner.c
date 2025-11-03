@@ -2,6 +2,6 @@
 
 TEST_GROUP_RUNNER(template)
 {
-   /* Test cases to run */
-   RUN_TEST_CASE(template, FirstTest);
+    /* Test cases to run */
+    RUN_TEST_CASE(template, FirstTest);
 }
