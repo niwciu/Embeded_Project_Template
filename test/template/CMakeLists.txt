@@ -62,7 +62,7 @@ set(MOCK_HEADERS
     # ${CMAKE_CURRENT_SOURCE_DIR}/../../../src/MODULE/module.h
 )
 set(MOCK_TARGET_NAME generate_mocks)
-set(MOCK_OUTPUT_DIR  ${CMAKE_BINARY_DIR}/cmocks)
+set(MOCK_OUTPUT_DIR  ${CMAKE_CURRENT_SOURCE_DIR}/cmocks)
 
 # --- MOCK GENERATION ---
 generate_mock(
