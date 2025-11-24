@@ -23,93 +23,111 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 # Remove default static libraries for win32
 set(CMAKE_C_STANDARD_LIBRARIES "")
 
-macro(add_arm_executable target_name)
 
-# Output files
-set(elf_file ${target_name}.elf)
-set(map_file ${target_name}.map)
-set(hex_file ${target_name}.hex)
-set(bin_file ${target_name}.bin)
-set(lss_file ${target_name}.lss)
-set(dmp_file ${target_name}.dmp)
+function(add_arm_executable TARGET)
 
-add_executable(${elf_file} ${ARGN})
+    # Optional custom ELF filename
+    if (ARGC GREATER 1)
+        set(ELF_NAME ${ARGV1})
+    else()
+        set(ELF_NAME "${TARGET}.elf")
+    endif()
 
-#generate hex file
-add_custom_command(
-	OUTPUT ${hex_file}
+    #
+    # 1. Set ELF output filename
+    #
+    set_target_properties(${TARGET}
+        PROPERTIES
+            OUTPUT_NAME ${ELF_NAME}
+            SUFFIX ""        # Prevent double extensions
+    )
 
-	COMMAND
-		${CMAKE_OBJCOPY} -O ihex ${elf_file} ${hex_file}
+    # Full ELF path as known by CMake
+    set(ELF_PATH $<TARGET_FILE:${TARGET}>)
 
-	DEPENDS ${elf_file}
-)
+    #
+    # 2. Artifact filenames (based on TARGET, not ELF_NAME)
+    #
+    set(HEX_FILE ${TARGET}.hex)
+    set(BIN_FILE ${TARGET}.bin)
+    set(LSS_FILE ${TARGET}.lss)
+    set(DMP_FILE ${TARGET}.dmp)
 
-# #generate bin file
-add_custom_command(
-	OUTPUT ${bin_file}
+    #
+    # 3. Generate artifacts
+    #
+    add_custom_command(
+        OUTPUT ${HEX_FILE}
+        COMMAND ${CMAKE_OBJCOPY} -O ihex ${ELF_PATH} ${HEX_FILE}
+        DEPENDS ${TARGET}
+        COMMENT "Generating HEX for ${TARGET}"
+    )
 
-	COMMAND
-		${CMAKE_OBJCOPY} -O binary ${elf_file} ${bin_file}
+    add_custom_command(
+        OUTPUT ${BIN_FILE}
+        COMMAND ${CMAKE_OBJCOPY} -O binary ${ELF_PATH} ${BIN_FILE}
+        DEPENDS ${TARGET}
+        COMMENT "Generating BIN for ${TARGET}"
+    )
 
-	DEPENDS ${elf_file}
-)
+    add_custom_command(
+        OUTPUT ${LSS_FILE}
+        COMMAND ${CMAKE_OBJDUMP} -h -S ${ELF_PATH} > ${LSS_FILE}
+        DEPENDS ${TARGET}
+        COMMENT "Generating LSS for ${TARGET}"
+    )
 
-# #generate extended listing
-add_custom_command(
-	OUTPUT ${lss_file}
+    add_custom_command(
+        OUTPUT ${DMP_FILE}
+        COMMAND ${CMAKE_OBJDUMP} -x --syms ${ELF_PATH} > ${DMP_FILE}
+        DEPENDS ${TARGET}
+        COMMENT "Generating DMP for ${TARGET}"
+    )
 
-	COMMAND
-		${CMAKE_OBJDUMP} -h -S ${elf_file} > ${lss_file}
+    #
+    # 4. Size print command
+    #    This runs AFTER artifacts are created.
+    #
+    add_custom_command(
+        OUTPUT ${TARGET}.sizeinfo
+        COMMAND ${CMAKE_SIZE} --format=berkeley ${ELF_NAME} ${HEX_FILE} 
+        DEPENDS
+            ${HEX_FILE}
+            ${BIN_FILE}
+            ${LSS_FILE}
+            ${DMP_FILE}
+        COMMENT "Printing size of ELF and HEX for ${TARGET}"
+    )
 
-	DEPENDS ${elf_file}
-)
+    #
+    # 5. Global target — executed in "make all"
+    #
+    add_custom_target(${TARGET}_artifacts ALL
+        DEPENDS
+            ${HEX_FILE}
+            ${BIN_FILE}
+            ${LSS_FILE}
+            ${DMP_FILE}
+            ${TARGET}.sizeinfo
+    )
 
-# #generate memory dump
-add_custom_command(
-	OUTPUT ${dmp_file}
+	# Check if programmer software is available 
+    find_program(STM32_Programmer STM32_Programmer_CLI)
+    if(STM32_Programmer)
+        message(STATUS "STM32 Programmer was found, you can work with your device using targets: \r\n\t flash,\r\n\t erase,\r\n\t reset.")
 
-	COMMAND
-		${CMAKE_OBJDUMP} -x --syms ${elf_file} > ${dmp_file}
+        # add "flash" command for programming the uC
+        add_custom_target(flash COMMAND ${STM32_Programmer} --connect port=SWD --write ${ELF_NAME} --verify -rst DEPENDS ${TARGET_NAME})
+        add_custom_target(erase COMMAND ${STM32_Programmer} -c port=SWD -e all)
+        add_custom_target(reset COMMAND ${STM32_Programmer} -c port=SWD -rst)
+    else()
+        message(STATUS "STM32 Programmer was not found.")  
+    endif()
 
-	DEPENDS ${elf_file}
-)
+endfunction(add_arm_executable)
 
+macro(arm_link_libraries TARGET)
 
-
-
-#postprocessing from elf file - generate hex bin etc.
-add_custom_target(
-	${CMAKE_PROJECT_NAME}
-	ALL
-	DEPENDS ${hex_file} ${bin_file} ${lss_file} ${dmp_file}
-)
-
-set_target_properties(
-	${CMAKE_PROJECT_NAME}
-
-	PROPERTIES
-		OUTPUT_NAME ${elf_file}
-)
-add_custom_command(
-	TARGET ${PROJECT_NAME} POST_BUILD 
-	COMMAND ${CMAKE_SIZE} --format=berkeley ${elf_file} ${hex_file})
-# check if programmer software is available 
-find_program(STM32_Programmer STM32_Programmer_CLI)
-if(STM32_Programmer)
-	message(STATUS "STM32 Programmer was found, you can work with your device using targets: \r\n\t flash,\r\n\t erase,\r\n\t reset.")	
-else()
-	message(STATUS "STM32 Programmer was not found.")  
-endif()
-# add "flash" command for programming the uC
-add_custom_target(flash COMMAND ${STM32_Programmer} --connect port=SWD --write $<TARGET_FILE:${elf_file}> --verify -rst)
-add_custom_target(erase COMMAND ${STM32_Programmer} -c port=SWD -e all)
-add_custom_target(reset COMMAND ${STM32_Programmer} -c port=SWD -rst)
-
-endmacro(add_arm_executable)
-
-macro(arm_link_libraries target_name)
-
-target_link_libraries(${target_name}.elf ${ARGN})
+target_link_libraries(${TARGET} ${ARGN})
 
 endmacro(arm_link_libraries)

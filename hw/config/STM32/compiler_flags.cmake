@@ -10,15 +10,33 @@ endif()
 set(CORE_FLAGS "${CORE_FLAGS} -mfloat-abi=soft")
 
 #enable showing compile diagnostic output colored (ninja require this opctions to show colored errors)
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 	set(CORE_FLAGS "${CORE_FLAGS} -fdiagnostics-color=always")
-elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+elseif (CMAKE_C_COMPILER_ID STREQUAL "Clang")
 	set(CORE_FLAGS "${CORE_FLAGS} -fcolor-diagnostics")
 endif()
+
+# ========================= C FLAGS =========================
+# Compiler flags specific for C files
+# -std - C standard: c89, c99, gnu89,gnu99, iso9899:119409
+# -Os - optimization level: -O0, -O1, -O2, -O3, -Os
+# fverbose-asm - additional comments for generated assembler code
+# -MMD - create dependency files
+#  -fstack-usage - enable stack usage analysis
+#  -fcyclomatic-complexity ->TBC
+set(C_FLAGS
+    "-std=gnu11 -Os -ffunction-sections -fdata-sections -fverbose-asm -MMD -fstack-usage --specs=nano.specs"
+)
 
 # Use newlib-nano, links with libc_nano.a
 # set(CORE_FLAGS "${CORE_FLAGS} --specs=nano.specs")
 
+# Warning flags for C++
+# -Wall - standard warnings
+# -Wextra - extended warnings
+set(C_WARNINGS "-Wall -Wextra -Wstrict-prototypes")
+
+# ========================= C++ FLAGS =========================
 # Compiler flags specific for C++ files
 # -std - C++ standard: c++98, gnu++98, c++11, gnu++11, c++14, gnu++14
 # -fno-rtti - disable virtual class information used by dynamic_cast and typeid
@@ -27,29 +45,17 @@ endif()
 # -MMD - create dependency files
 set(CXX_FLAGS "-std=gnu++14 -Os -fno-rtti -fno-exceptions -fverbose-asm -MMD")
 
-# Compiler flags specific for C files
-# -std - C standard: c89, c99, gnu89,gnu99, iso9899:119409
-# -Os - optimization level: -O0, -O1, -O2, -O3, -Os
-# fverbose-asm - additional comments for generated assembler code
-# -MMD - create dependency files
-#  -fstack-usage - enable stack usage analysis
-#  -fcyclomatic-complexity ->TBC
-set(C_FLAGS "-std=gnu11 -Os -ffunction-sections -fdata-sections -fverbose-asm -MMD -fstack-usage --specs=nano.specs ")
-
-set(ASM_FLAGS "-c -x assembler-with-cpp --specs=nano.specs")
-
 # Warning flags for C++
 # -Wall - standard warnings
 # -Wextra - extended warnings
 set(CXX_WARNINGS "-Wall -Wextra")
 
-# Warning flags for C
-# -Wall - standard warnings
-# -Wextra - extended warnings
-# -Wstrict-prototypes - additional warnings for function prototypes
-set(C_WARNINGS "-Wall -Wextra -Wstrict-prototypes")
+# ========================= ASM FLAGS =========================
+set(ASM_FLAGS "-c -x assembler-with-cpp --specs=nano.specs")
 
+# ========================= LINKER FLAGS ======================
 set(LD_SCRIPT ${CMAKE_SOURCE_DIR}/${LD_FILE})
+
 # Linker flags
 # -Wl, -Map - map file to be created
 # -T - file with linker script
@@ -61,7 +67,8 @@ set(LD_SCRIPT ${CMAKE_SOURCE_DIR}/${LD_FILE})
 # -Wl,--end-group
 set(LD_FLAGS "-Wl,-Map=\"${PROJECT_BINARY_DIR}/${CMAKE_PROJECT_NAME}.map\",--cref -T\"${LD_SCRIPT}\" --specs=nosys.specs -Wl,--gc-sections -Wl,--print-memory-usage")
 
-set(CMAKE_CXX_FLAGS "${CORE_FLAGS} ${CXX_FLAGS} ${CXX_WARNINGS}")
-set(CMAKE_C_FLAGS "${CORE_FLAGS} ${C_FLAGS} ${C_WARNINGS}")
-set(CMAKE_ASM_FLAGS "${ASM_FLAGS} ${CORE_FLAGS} ${CXX_WARNINGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CORE_FLAGS} ${LD_FLAGS}")
+# ========================= APPLY ============================
+set(CMAKE_C_FLAGS               "${CORE_FLAGS} ${C_FLAGS} ${C_WARNINGS}")
+set(CMAKE_CXX_FLAGS             "${CORE_FLAGS} ${CXX_FLAGS} ${CXX_WARNINGS}")
+set(CMAKE_ASM_FLAGS             "${CORE_FLAGS} ${ASM_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS      "${CORE_FLAGS} ${LD_FLAGS}")
