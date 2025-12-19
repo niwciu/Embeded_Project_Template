@@ -4,6 +4,8 @@ function(generate_mock HEADERS TARGET_NAME OUTPUT_DIR OUT_VAR)
     file(MAKE_DIRECTORY ${OUTPUT_DIR})
 
     set(GENERATED_MOCKS)
+    set(ALL_COMMANDS)
+    set(ALL_DEPENDS)
 
     foreach(HEADER ${HEADERS})
         get_filename_component(HEADER_ABS "${HEADER}" ABSOLUTE)
@@ -14,35 +16,39 @@ function(generate_mock HEADERS TARGET_NAME OUTPUT_DIR OUT_VAR)
         if(NOT EXISTS ${YAML_FILE})
             file(WRITE ${YAML_FILE}
                 ":cmock:
-                :mock_prefix: \"mock_\"
-                :callback: true
-                :plugins:
-                    - expect
-                    - ignore
-                    - return_thru_ptr
-                    - callback
-                "
-            )
+  :mock_prefix: \"mock_\"
+  :callback: true
+  :plugins:
+    - expect
+    - expect_any_args
+    - ignore
+    - return_thru_ptr
+    - callback")
         endif()
 
-        add_custom_command(
-            OUTPUT ${MOCK_FILE}
-            COMMAND ${RUBY_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../CMock/lib/cmock.rb
+        # Add commands to the list
+        list(APPEND ALL_COMMANDS
+            COMMAND ${CMAKE_COMMAND} -E echo "Generating mock for ${HEADER_NAME}.h"
+            COMMAND ${RUBY_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../cmock/lib/cmock.rb
                     ${HEADER_ABS} --mock_path=${OUTPUT_DIR} -o${YAML_FILE}
-            DEPENDS ${HEADER_ABS} ${CMAKE_CURRENT_SOURCE_DIR}/../CMock/lib/cmock.rb ${YAML_FILE}
-            BYPRODUCTS ${MOCK_FILE}
-            COMMENT "Generating mock for ${HEADER_NAME}.h"
-            VERBATIM
         )
-
+        
+        # Collect all dependencies
+        list(APPEND ALL_DEPENDS ${HEADER_ABS} ${YAML_FILE})
+        
         list(APPEND GENERATED_MOCKS ${MOCK_FILE})
     endforeach()
 
+    # Add cmock.rb as dependency
+    list(APPEND ALL_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../cmock/lib/cmock.rb)
 
-    # --- DEFINE A TARGET THAT AGGREGATES ALL GENERATED MOCKS ---
+    # --- CREATE SINGLE TARGET FOR ALL MOCKS ---
     add_custom_target(${TARGET_NAME}
-        DEPENDS ${GENERATED_MOCKS}
-        COMMENT "Ensuring all mock files are up to date"
+        ${ALL_COMMANDS}
+        DEPENDS ${ALL_DEPENDS}
+        BYPRODUCTS ${GENERATED_MOCKS}
+        COMMENT "Generating all mock files"
+        VERBATIM
     )
 
     # --- CLEAN GENERATED MOCKS ON 'MAKE CLEAN' ---

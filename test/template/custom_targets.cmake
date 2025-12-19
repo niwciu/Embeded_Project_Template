@@ -1,22 +1,6 @@
 #############################################################################################################################
 # FILE:    custom_targets.cmake
 # BRIEF:   Defines project-specific custom build targets (unit tests, static analysis, complexity, coverage, formatting)
-#
-# USAGE:
-#   List available targets:
-#       cmake --build out --target help
-#
-#   Run a specific target (works with any generator):
-#       cmake --build out --target run         # run unit tests
-#       cmake --build out --target cppcheck    # static analysis
-#       cmake --build out --target ccmr        # code complexity HTML report
-#       cmake --build out --target ccr         # code coverage report
-#       cmake --build out --target format      # format code
-#
-#   or directly (if using Ninja or Make):
-#       ninja -C out run
-#       make  -C out ccr
-#
 # NOTE:
 #   Relative paths below are intentional for cleaner console output.
 #   WORKING_DIRECTORY guarantees they resolve correctly at runtime.
@@ -25,20 +9,28 @@
 #############################################################################################################################
 # 1) RUN UNIT TESTS
 #############################################################################################################################
+message(STATUS "To run unit tests, use predefined target: \r\n\trun \r\n\trun_ctest")
 add_custom_target(run
-    COMMAND ${CMAKE_COMMAND} -E echo "Running unit tests..."
-    COMMAND ctest --output-on-failure --verbose
-    COMMENT "Executing all unit tests via CTest"
+    COMMAND ${CMAKE_COMMAND} -E echo "Running ${PROJECT_NAME} unit tests..."
+    COMMAND ${PROJECT_NAME} 
+    COMMENT "Executing ${PROJECT_NAME} app"
+    VERBATIM
 )
-message(STATUS "To run unit tests, use predefined target: run")
+
+add_custom_target(run_ctest
+    COMMAND ${CMAKE_COMMAND} -E echo "Running ${PROJECT_NAME} unit tests..."
+    COMMAND ${CMAKE_CTEST_COMMAND} 
+    COMMENT "Executing ${PROJECT_NAME} via CTest"
+    VERBATIM
+)
+
 
 #############################################################################################################################
 # 2) CODE COMPLEXITY (LIZARD)
 #############################################################################################################################
 find_program(LIZARD_EXECUTABLE lizard)
 if(LIZARD_EXECUTABLE)
-    message(STATUS "Lizard found — predefined targets available: ccm, ccmr")
-
+    message(STATUS "Lizard found — predefined targets available: \r\n\tccm, \r\n\tccmr")
     add_custom_target(ccm
         COMMAND ${LIZARD_EXECUTABLE}
             ../../src/
@@ -76,7 +68,7 @@ endif()
 #############################################################################################################################
 find_program(CPPCHECK_EXECUTABLE cppcheck)
 if(CPPCHECK_EXECUTABLE)
-    message(STATUS "CppCheck found — predefined target available: cppcheck")
+    message(STATUS "CppCheck found — predefined target available: \r\n\tcppcheck")
 
     add_custom_target(cppcheck
         COMMAND ${CPPCHECK_EXECUTABLE}
@@ -101,7 +93,7 @@ endif()
 #############################################################################################################################
 find_program(GCOVR_EXECUTABLE gcovr)
 if(GCOVR_EXECUTABLE)
-    message(STATUS "Gcovr found — predefined targets available: ccc, ccr, ccca, ccra")
+    message(STATUS "Gcovr found — predefined targets available: \r\n\tccc, \r\n\tccr, \r\n\tccca, \r\n\tccra")
 
     set(REPORT_DIR ../../reports/CCR)
     set(REPORT_JSON_DIR ${REPORT_DIR}/JSON_ALL)
@@ -172,7 +164,7 @@ endif()
 # a potem wstrzykujemy ją do polecenia z COMMAND_EXPAND_LISTS (modern CMake).
 find_program(CLANG_FORMAT_EXECUTABLE clang-format)
 if(CLANG_FORMAT_EXECUTABLE)
-    message(STATUS "clang-format found — predefined targets: format, format_test")
+    message(STATUS "clang-format found — predefined targets: \r\n\tformat, \r\n\tformat_test")
 
     # Zbierz pliki źródłowe do formatowania (ścieżki RELATIVE dla krótszego outputu)
     file(GLOB FORMAT_SOURCES

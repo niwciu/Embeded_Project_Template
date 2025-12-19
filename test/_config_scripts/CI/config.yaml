@@ -1,10 +1,14 @@
+build:
+  system: ninja   # make | ninja
+  jobs: 12         # opcjonalne, tylko dla make
+
 modules:
   - name: template
     targets:
       - run
       - ccmr
       - ccr
-      -ccra
+      - ccra
  
 
 # # Lista raportów, które mają zostać otwarte dodatkowo

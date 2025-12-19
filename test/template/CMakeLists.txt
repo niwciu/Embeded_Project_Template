@@ -24,7 +24,7 @@ project(template_test LANGUAGES C)
 add_subdirectory(../unity unity)
 
 # --- CMOCK FRAMEWORK ---
-add_subdirectory(../CMock/src cmock)
+add_subdirectory(../cmock/src cmock)
 
 # --- CUSTOM TARGETS FILE (MANDATORY, FAIL IF MISSING) ---
 set(CUSTOM_TARGETS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/custom_targets.cmake")
