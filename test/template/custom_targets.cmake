@@ -1,15 +1,28 @@
 #############################################################################################################################
 # FILE:    custom_targets.cmake
 # BRIEF:   Defines project-specific custom build targets (unit tests, static analysis, complexity, coverage, formatting)
+#
 # NOTE:
 #   Relative paths below are intentional for cleaner console output.
 #   WORKING_DIRECTORY guarantees they resolve correctly at runtime.
 #############################################################################################################################
 
 #############################################################################################################################
+# 0) TARGET CONFIGURATION
+#    -> Replace the "template" values with the actual module names
+#    -> Keep correct case sensitivity
+#############################################################################################################################
+set(SRC_MODULE_FOLDER_NAME template)
+set(TEST_MODULE_FOLDER_NAME template)
+set(REPORTS_PREFIX_NAME template)
+set(GCOVR_REPORT_SUBFOLDER_NAME template)
+
+
+#############################################################################################################################
 # 1) RUN UNIT TESTS
 #############################################################################################################################
-message(STATUS "To run unit tests, use predefined target: \r\n\trun \r\n\trun_ctest")
+message(STATUS "To run Unit Tests, you can use predefined target: \r\n\trun, \r\n\trun_ctest")
+
 add_custom_target(run
     COMMAND ${CMAKE_COMMAND} -E echo "Running ${PROJECT_NAME} unit tests..."
     COMMAND ${PROJECT_NAME} 
@@ -24,16 +37,16 @@ add_custom_target(run_ctest
     VERBATIM
 )
 
-
 #############################################################################################################################
 # 2) CODE COMPLEXITY (LIZARD)
 #############################################################################################################################
 find_program(LIZARD_EXECUTABLE lizard)
 if(LIZARD_EXECUTABLE)
     message(STATUS "Lizard found — predefined targets available: \r\n\tccm, \r\n\tccmr")
+
     add_custom_target(ccm
         COMMAND ${LIZARD_EXECUTABLE}
-            ../../src/
+            ../../src/${SRC_MODULE_FOLDER_NAME}
             --CCN 12 
 			-Tnloc=30 
 			-a 4
@@ -48,13 +61,13 @@ if(LIZARD_EXECUTABLE)
     add_custom_target(ccmr
         COMMAND ${CMAKE_COMMAND} -E make_directory ../../reports/CCM/
         COMMAND ${LIZARD_EXECUTABLE}
-            ../../src/
+            ../../src/${SRC_MODULE_FOLDER_NAME}
             --CCN 12 
 			-Tnloc=30 
 			-a 4
             --languages cpp
             -V 
-			-o ../../reports/CCM/template.html
+			-o ../../reports/CCM/${REPORTS_PREFIX_NAME}.html
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generating Lizard HTML complexity report"
         VERBATIM
@@ -72,13 +85,14 @@ if(CPPCHECK_EXECUTABLE)
 
     add_custom_target(cppcheck
         COMMAND ${CPPCHECK_EXECUTABLE}
-            ../../../src/template
-            ../../../test/template
-            -i../../test/template/out
+            ../../../src/${SRC_MODULE_FOLDER_NAME}
+            ../../../test/${TEST_MODULE_FOLDER_NAME}
+            -i../../test/${TEST_MODULE_FOLDER_NAME}/out
+            -i../../test/${TEST_MODULE_FOLDER_NAME}/cmocks
             --enable=all
             --force
             --std=c99
-            --suppress=missingIncludeSystem
+            # --suppress=missingIncludeSystem
             --suppress=missingInclude
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Running CppCheck static analysis for src & test directories"
@@ -98,17 +112,17 @@ if(GCOVR_EXECUTABLE)
     set(REPORT_DIR ../../reports/CCR)
     set(REPORT_JSON_DIR ${REPORT_DIR}/JSON_ALL)
     set(REPORT_COMMON_HTML_DIR ${REPORT_JSON_DIR}/HTML_OUT)
-    set(REPORT_MODULE_DIR ${REPORT_DIR}/template)
+    set(REPORT_MODULE_DIR ${REPORT_DIR}/${GCOVR_REPORT_SUBFOLDER_NAME})
 
     add_custom_target(ccr
         COMMAND ${CMAKE_COMMAND} -E make_directory ${REPORT_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${REPORT_JSON_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${REPORT_MODULE_DIR}
         COMMAND ${GCOVR_EXECUTABLE}
-            -r ../../src/template
-            --json ${REPORT_JSON_DIR}/coverage_template.json
-            --json-base src/template
-            --html-details ${REPORT_DIR}/template/template_report.html
+            -r ../../src/${SRC_MODULE_FOLDER_NAME}
+            --json ${REPORT_JSON_DIR}/coverage_${REPORTS_PREFIX_NAME}.json
+            --json-base src/${SRC_MODULE_FOLDER_NAME}
+            --html-details ${REPORT_MODULE_DIR}/${REPORTS_PREFIX_NAME}_report.html
             --html-theme github.dark-green
             .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -118,7 +132,7 @@ if(GCOVR_EXECUTABLE)
 
     add_custom_target(ccc
         COMMAND ${GCOVR_EXECUTABLE}
-            -r ../../src/template
+            -r ../../src/${SRC_MODULE_FOLDER_NAME}
             --fail-under-line 90
             .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -169,8 +183,8 @@ if(CLANG_FORMAT_EXECUTABLE)
     # Zbierz pliki źródłowe do formatowania (ścieżki RELATIVE dla krótszego outputu)
     file(GLOB FORMAT_SOURCES
         RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-        ../../src/template/*.c
-        ../../src/template/*.h
+        ../../src/${SRC_MODULE_FOLDER_NAME}/*.c
+        ../../src/${SRC_MODULE_FOLDER_NAME}/*.h
     )
 
     file(GLOB FORMAT_TEST_SOURCES
