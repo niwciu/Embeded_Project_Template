@@ -1,7 +1,6 @@
 #############################################################################################################################
 # FILE:    custom_targets.cmake
 # BRIEF:   Defines project-specific custom build targets (unit tests, static analysis, complexity, coverage, formatting)
-#
 # NOTE:
 #   Relative paths below are intentional for cleaner console output.
 #   WORKING_DIRECTORY guarantees they resolve correctly at runtime.
@@ -92,8 +91,11 @@ if(CPPCHECK_EXECUTABLE)
             --enable=all
             --force
             --std=c99
-            # --suppress=missingIncludeSystem
+            --suppress=missingIncludeSystem
             --suppress=missingInclude
+			# --suppress=unusedFunction:../../../test/....
+			--checkers-report=cppcheck_checkers_report.txt
+			--error-exitcode=1
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Running CppCheck static analysis for src & test directories"
         VERBATIM
@@ -178,7 +180,7 @@ endif()
 # a potem wstrzykujemy ją do polecenia z COMMAND_EXPAND_LISTS (modern CMake).
 find_program(CLANG_FORMAT_EXECUTABLE clang-format)
 if(CLANG_FORMAT_EXECUTABLE)
-    message(STATUS "clang-format found — predefined targets: \r\n\tformat, \r\n\tformat_test")
+    message(STATUS "clang-format found — predefined targets: \r\n\tformat, \r\n\tformat_check")
 
     # Zbierz pliki źródłowe do formatowania (ścieżki RELATIVE dla krótszego outputu)
     file(GLOB FORMAT_SOURCES
@@ -193,21 +195,57 @@ if(CLANG_FORMAT_EXECUTABLE)
         ./*.h
     )
 
-    add_custom_target(format
-        COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Formatting source files using clang-format"
-        VERBATIM
-        COMMAND_EXPAND_LISTS
+    # Zbierz wszystkie pliki do sprawdzenia/formatowania
+    set(ALL_FORMAT_FILES ${FORMAT_SOURCES} ${FORMAT_TEST_SOURCES})
+
+    # format_check: sprawdza formatowanie bez modyfikowania plików
+    # Uwaga: gdy clang-format dostanie 0 plików, potrafi czytać stdin i wygląda to jak "zawieszenie".
+    # Drugi częsty problem to limity długości linii poleceń (zwłaszcza na Windows) — dlatego lecimy per plik.
+    add_custom_target(format_check
+        COMMENT "Checking formatting (sources + tests) using clang-format"
     )
 
-    add_custom_target(format_test
-        COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_TEST_SOURCES}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Formatting test files using clang-format"
-        VERBATIM
-        COMMAND_EXPAND_LISTS
+    foreach(f IN LISTS ALL_FORMAT_FILES)
+        add_custom_command(TARGET format_check PRE_BUILD
+            COMMAND ${CLANG_FORMAT_EXECUTABLE}
+                    --dry-run --Werror -style=file
+                    "${f}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            VERBATIM
+        )
+    endforeach()
+
+    # (Opcjonalnie) jeżeli lista jest pusta, pokaż informację zamiast ryzykować uruchomienie clang-format bez argumentów
+    if(NOT ALL_FORMAT_FILES)
+        add_custom_command(TARGET format_check PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E echo "format_check: no files matched (nothing to check)."
+            VERBATIM
+        )
+    endif()
+
+    # format: formatuje kod + testy (jeden target)
+    # Zabezpieczenie: jeżeli nie ma plików (np. brak testów albo pusty src), nie wołamy clang-format bez argumentów.
+    add_custom_target(format
+        COMMENT "Formatting source + test files using clang-format"
     )
+
+    foreach(f IN LISTS ALL_FORMAT_FILES)
+        add_custom_command(TARGET format PRE_BUILD
+            COMMAND ${CLANG_FORMAT_EXECUTABLE}
+                    -i -style=file
+                    "${f}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            VERBATIM
+        )
+    endforeach()
+
+    if(NOT ALL_FORMAT_FILES)
+        add_custom_command(TARGET format PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E echo "format: no files matched (nothing to format)."
+            VERBATIM
+        )
+    endif()
+
 else()
     message(STATUS "clang-format was not found — install it to enable code formatting targets.")
 endif()
@@ -215,3 +253,41 @@ endif()
 #############################################################################################################################
 # END OF FILE
 #############################################################################################################################
+
+
+# below previous version - will be removed after testing new version of format targets
+# find_program(CLANG_FORMAT_EXECUTABLE clang-format)
+# if(CLANG_FORMAT_EXECUTABLE)
+#     message(STATUS "clang-format found — predefined targets: \r\n\tformat, \r\n\tformat_test")
+
+#     # Zbierz pliki źródłowe do formatowania (ścieżki RELATIVE dla krótszego outputu)
+#     file(GLOB FORMAT_SOURCES
+#         RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+#         ../../src/${SRC_MODULE_FOLDER_NAME}/*.c
+#         ../../src/${SRC_MODULE_FOLDER_NAME}/*.h
+#     )
+
+#     file(GLOB FORMAT_TEST_SOURCES
+#         RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+#         ./*.c
+#         ./*.h
+#     )
+
+#     add_custom_target(format
+#         COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
+#         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#         COMMENT "Formatting source files using clang-format"
+#         VERBATIM
+#         COMMAND_EXPAND_LISTS
+#     )
+
+#     add_custom_target(format_test
+#         COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_TEST_SOURCES}
+#         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#         COMMENT "Formatting test files using clang-format"
+#         VERBATIM
+#         COMMAND_EXPAND_LISTS
+#     )
+# else()
+#     message(STATUS "clang-format was not found — install it to enable code formatting targets.")
+# endif()
